@@ -343,13 +343,42 @@
     const form = $("#contact-form");
     const status = $("#contact-status");
     if (!form) return;
+
+    const RECIPIENT = "jeminni@daum.net"; // 상담 요청 수신 메일 주소
+
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const company = form.company.value.trim();
-      // 데모 환경: 서버 전송 대신 확인 메시지 표시
-      status.textContent = `${company ? company + " 님, " : ""}상담 요청이 접수되었습니다. 담당자가 이메일로 연락드리겠습니다. (데모)`;
+      const email = form.email.value.trim();
+      const message = form.message.value.trim();
+
+      // 메일 제목·본문 조립
+      const subject = `[상담요청] ${company || "회사명 미기재"}`;
+      const bodyLines = [
+        "의료용테이프컨설팅 상담 요청",
+        "----------------------------------------",
+        `회사명: ${company || "(미기재)"}`,
+        `회신 이메일: ${email || "(미기재)"}`,
+        "",
+        "문의 내용:",
+        message || "(내용 없음)",
+        "",
+        "----------------------------------------",
+        "본 메일은 웹사이트 상담 폼에서 생성되었습니다.",
+      ];
+      const body = bodyLines.join("\r\n");
+
+      // mailto 링크 생성 후 메일 앱 실행
+      const mailto =
+        `mailto:${RECIPIENT}` +
+        `?subject=${encodeURIComponent(subject)}` +
+        `&body=${encodeURIComponent(body)}`;
+      window.location.href = mailto;
+
+      // 안내 메시지
+      status.textContent =
+        "메일 작성 창을 열었습니다. 내용을 확인하고 '보내기'를 누르면 상담 요청이 전달됩니다.";
       status.classList.add("ok");
-      form.reset();
     });
   }
 
