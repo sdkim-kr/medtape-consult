@@ -299,12 +299,33 @@
     return list.slice().sort((x, y) => y.score - x.score).slice(0, n);
   }
 
+  // 솔벤텀(3M) 제품 매칭: 입력 조건과 추천 접착제에 맞춰 구체 제품 점수화
+  function scoreSolventum(p, input, topAdhesiveId) {
+    let score = 0;
+    const m = p.match || {};
+    if (m.wearTime && m.wearTime.includes(input.wearTime)) score += 3;
+    if (m.adhesive && m.adhesive === topAdhesiveId) score += 3;
+    if (m.activity && m.activity === input.activity) score += 2;
+    if (m.deviceWeight && m.deviceWeight === input.deviceWeight) score += 2;
+    if (m.reposition && input.reposition) score += 2;
+    if (m.application && m.application.includes(input.application)) score += 2;
+    // 재부착이 필요한데 재부착 매치가 없는 제품은 감점
+    if (input.reposition && !m.reposition) score -= 1;
+    return { item: p, score };
+  }
+
   function renderResult(input) {
     const out = $("#advisor-result");
     if (!out) return;
 
     const adhesives = topN(KB.ADHESIVES.map((a) => scoreAdhesive(a, input)), 2);
     const backings = topN(KB.BACKINGS.map((b) => scoreBacking(b, input)), 2);
+    const topAdhesiveId = adhesives[0] ? adhesives[0].item.id : null;
+
+    const solventum = topN(
+      (KB.SOLVENTUM_PRODUCTS || []).map((p) => scoreSolventum(p, input, topAdhesiveId)),
+      2
+    ).filter((r) => r.score > 0);
 
     const wearLabel = { short: "단기(~1일)", mid: "중기(2~6일)", long: "장기(7일)", extended: "연장(7~14일+)" }[input.wearTime];
     const skinLabel = { normal: "일반 성인", sensitive: "민감성/노약자", neonatal: "신생아/영유아" }[input.skinType];
@@ -345,6 +366,27 @@
       })
       .join("");
 
+    const solventumHtml = solventum.length
+      ? solventum
+          .map((r, i) => {
+            const p = r.item;
+            const hi = (p.highlights || []).map((h) => `<li>${h}</li>`).join("");
+            return `
+        <div class="prod-item ${i === 0 ? "prod-primary" : ""}">
+          <div class="prod-head">
+            <span class="prod-code">${p.code}</span>
+            <div>
+              <strong>${p.name}</strong>
+              <span class="prod-wear">${p.wearTime}</span>
+            </div>
+          </div>
+          <p class="prod-constr">${p.construction}</p>
+          <ul class="prod-hi">${hi}</ul>
+        </div>`;
+          })
+          .join("")
+      : `<p class="prod-empty">이 조건에 딱 맞는 대표 제품이 좁혀지지 않았습니다. 상담을 통해 맞춤 검토를 제안드립니다.</p>`;
+
     out.innerHTML = `
       <div class="result-card">
         <h3>추천 결과</h3>
@@ -356,7 +398,10 @@
         <h4 class="rec-group">추천 원단 (Backing)</h4>
         ${backingHtml}
 
-        <p class="result-vendor-note">※ 표기된 제조사 계열은 국내 진출 외국계(Solventum(3M)·Henkel·Nitto Denko·Adhesives Research·Avery Dennison)의 공개된 제품 카테고리를 참고한 예시이며, 특정 제품 지정·보증이 아닙니다.</p>
+        <h4 class="rec-group rec-group-solventum">솔벤텀(3M) 대표 제품 매칭 <span class="solventum-badge">Solventum</span></h4>
+        <div class="prod-list">${solventumHtml}</div>
+
+        <p class="result-vendor-note">※ 솔벤텀(3M)의 공개 제품 자료를 참고한 예시 매칭입니다. 스펙 수치는 대표값이며, 특정 제품 지정·보증이 아닙니다. 정확한 사양은 최신 기술자료(TIS/TDS)를 확인하세요.</p>
         <p class="result-disclaimer">⚠️ 위 추천은 초기 방향 설정용입니다. 최종 채택 전 반드시 생체적합성(ISO 10993) 시험, MARSI 리스크 평가, 실착용 테스트를 진행하세요.</p>
         <a href="#contact" class="btn btn-primary btn-sm">이 조건으로 상담 요청</a>
       </div>`;

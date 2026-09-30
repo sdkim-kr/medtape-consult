@@ -23,11 +23,9 @@ const ADHESIVES = [
     repositionable: false,
     bestFor: ["장기 부착 센서", "고정용 웨어러블", "방수가 필요한 환경"],
     cautions: ["민감성 피부에서 장기 사용 시 각질 손상(MARSI) 위험", "탈착 시 통증 가능"],
-    // 국내 진출 외국계 제조사의 공개된 대표 제품 카테고리(사실 기반 재구성)
+    // 솔벤텀(3M) 공개 제품 카탈로그 기준(사실 기반, 스펙 요약)
     vendors: [
-      { brand: "Solventum(3M)", line: "Extended Wear 아크릴레이트 테이프 계열(다일 착용용)" },
-      { brand: "Henkel", line: "DURO-TAK 아크릴 PSA 계열" },
-      { brand: "Avery Dennison", line: "장기 착용용 아크릴 스킨 접착 시스템" },
+      { brand: "Solventum(3M)", line: "Medical Tape 4578 · 4076 · 4077 (Extended Wear 아크릴레이트)" },
     ],
   },
   {
@@ -42,8 +40,7 @@ const ADHESIVES = [
     bestFor: ["신생아/노약자 피부", "반복 탈부착 디바이스", "연약 피부(상처 주변)"],
     cautions: ["강한 물리적 고정력 필요 시 부족", "상대적으로 단가 높음"],
     vendors: [
-      { brand: "Solventum(3M)", line: "Medical Silicone Tape(스펀레이스 부직포/필름 지지체)" },
-      { brand: "Nitto Denko", line: "저자극 스킨 접착 계열(피부 순함 강조)" },
+      { brand: "Solventum(3M)", line: "Medical Silicone Tape 2480(hi-tack) · 2487 (최대 7일)" },
     ],
   },
   {
@@ -58,8 +55,7 @@ const ADHESIVES = [
     bestFor: ["CGM 등 습윤 접촉 부위", "삼출물 있는 상처", "장시간 방수 착용"],
     cautions: ["과도한 수분 노출 시 젤화로 탈락 가능", "두께로 인한 이물감"],
     vendors: [
-      { brand: "Adhesives Research", line: "습윤/친수(hydrophilic) 스킨 접착 계열" },
-      { brand: "Avery Dennison", line: "장기 방수 착용용 하이드로콜로이드 시스템" },
+      { brand: "Solventum(3M)", line: "습윤 접촉 응용은 4578 등 연장착용 아크릴 + 흡수 드레싱 조합 검토" },
     ],
   },
   {
@@ -74,7 +70,7 @@ const ADHESIVES = [
     bestFor: ["단기 강력 고정", "저비용 대량 적용"],
     cautions: ["알레르기 반응(감작) 상대적으로 높음", "장기 착용 부적합"],
     vendors: [
-      { brand: "Henkel", line: "TECHNOMELT 핫멜트 계열(고정용)" },
+      { brand: "Solventum(3M)", line: "단기 고정은 실리콘 2480 또는 아크릴 단기 계열로 대체 권장" },
     ],
   },
   {
@@ -89,7 +85,7 @@ const ADHESIVES = [
     bestFor: ["압박 완화가 필요한 패치", "얼굴 등 곡면/민감 부위"],
     cautions: ["고정력이 약해 활동량 많은 부위 부적합"],
     vendors: [
-      { brand: "Adhesives Research", line: "겔/쿠셔닝 스킨 접착 계열" },
+      { brand: "Solventum(3M)", line: "부드러운 접촉은 실리콘 2480 계열 검토" },
     ],
   },
 ];
@@ -210,5 +206,74 @@ const COMPLIANCE_NOTES = [
   },
 ];
 
+// 솔벤텀(3M) 대표 의료용 테이프 카탈로그 -----------------------------------
+// 공개 제품 자료(3M/Solventum) 기준으로 정리했습니다. 스펙 수치는 대표값이며
+// 사양 목적으로 사용할 수 없습니다. 실제 채택 전 최신 TIS/TDS를 확인하세요.
+const SOLVENTUM_PRODUCTS = [
+  {
+    code: "4578",
+    name: "Medical Tape 4578",
+    construction: "폴리에스터 스펀레이스 부직포 + 연장착용 아크릴레이트 접착제",
+    wearTime: "최대 28일 (초장기)",
+    match: { wearTime: ["extended", "long"], adhesive: "acrylic" },
+    highlights: ["라이너 없이 패키징 가능한 구성", "EtO 멸균 호환", "유연하고 곡면 순응성 우수"],
+    bestFor: ["장기 웨어러블", "다일(multi-week) 착용 센서"],
+  },
+  {
+    code: "4076",
+    name: "Medical Tape 4076",
+    construction: "화이트 스펀레이스 부직포 + 연장착용 아크릴레이트",
+    wearTime: "연장 착용",
+    match: { wearTime: ["extended", "long"], adhesive: "acrylic" },
+    highlights: ["부직포 통기성", "인쇄 가능한 백킹"],
+    bestFor: ["연장 착용 패치", "넓은 면적 고정"],
+  },
+  {
+    code: "4077",
+    name: "Medical Tape 4077",
+    construction: "신축성(PU/합성고무) 부직포 + 연장착용 아크릴레이트",
+    wearTime: "연장 착용",
+    match: { wearTime: ["extended", "long"], adhesive: "acrylic", activity: "high" },
+    highlights: ["높은 통기성", "신축성으로 관절·곡면 순응"],
+    bestFor: ["활동량 많은 부위", "관절부 웨어러블"],
+  },
+  {
+    code: "2480",
+    name: "Medical Silicone Tape 2480",
+    construction: "폴리에스터 스펀레이스 부직포 + hi-tack 실리콘 접착제",
+    wearTime: "재부착 가능(단·중기)",
+    match: { wearTime: ["short", "mid"], adhesive: "silicone", reposition: true },
+    highlights: ["부드러운 피부 접촉(MARSI 저감)", "재부착(repositionable) 가능"],
+    bestFor: ["민감성 피부", "반복 탈부착", "상처 주변"],
+  },
+  {
+    code: "2487",
+    name: "Medical Silicone Tape 2487",
+    construction: "실리콘 접착 테이프",
+    wearTime: "최대 7일",
+    match: { wearTime: ["short", "mid", "long"], adhesive: "silicone" },
+    highlights: ["최대 7일 착용", "EtO 멸균 호환", "저잔사 설계"],
+    bestFor: ["중기 착용 민감 피부", "저자극 요구 응용"],
+  },
+  {
+    code: "1522",
+    name: "Medical Tape 1522",
+    construction: "양면 투명 폴리에틸렌(double-sided)",
+    wearTime: "디바이스 접합용",
+    match: { deviceWeight: "heavy" },
+    highlights: ["디바이스-피부 접합용 양면 테이프", "투명 필름"],
+    bestFor: ["하우징 있는 기기 부착", "부품 접합"],
+  },
+  {
+    code: "1577",
+    name: "Medical Tape 1577",
+    construction: "폴리에스터 필름 + HT(고온) 아크릴",
+    wearTime: "필름 캐리어",
+    match: { application: ["ecg", "diagnostic"] },
+    highlights: ["치수 안정 폴리에스터 필름", "전극·회로 캐리어에 적합"],
+    bestFor: ["ECG 전극", "진단 디바이스 필름층"],
+  },
+];
+
 // 다른 파일에서 사용할 수 있도록 전역으로 노출
-window.MEDTAPE_KB = { ADHESIVES, BACKINGS, COMPLIANCE_NOTES };
+window.MEDTAPE_KB = { ADHESIVES, BACKINGS, COMPLIANCE_NOTES, SOLVENTUM_PRODUCTS };
