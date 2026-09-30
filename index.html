@@ -71,16 +71,28 @@
         <div class="advisor-grid">
           <form id="advisor-form" class="advisor-form" aria-label="테이프 추천 진단 양식">
             <div class="field">
-              <label for="wearTime">착용(부착) 기간</label>
-              <select id="wearTime" name="wearTime">
-                <option value="short">단기 (~1일)</option>
-                <option value="mid" selected>중기 (2~7일)</option>
-                <option value="long">장기 (7일 이상)</option>
+              <label for="application">적용 분야 (디바이스 유형)</label>
+              <select id="application" name="application">
+                <option value="general" selected>일반 고정 / 패치</option>
+                <option value="cgm">CGM · 바이오센서 (연속 모니터링)</option>
+                <option value="ecg">ECG · 전극 (생체신호)</option>
+                <option value="wound">상처 드레싱 / 상처 주변</option>
+                <option value="diagnostic">진단 디바이스 (미세유체·검체)</option>
               </select>
             </div>
 
             <div class="field">
-              <label for="skinType">대상 피부 민감도</label>
+              <label for="wearTime">목표 착용 기간 (Wear time)</label>
+              <select id="wearTime" name="wearTime">
+                <option value="short">단기 (~1일)</option>
+                <option value="mid" selected>중기 (2~6일)</option>
+                <option value="long">장기 (7일)</option>
+                <option value="extended">연장 착용 (7~14일 이상)</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="skinType">대상 피부 특성</label>
               <select id="skinType" name="skinType">
                 <option value="normal" selected>일반 성인</option>
                 <option value="sensitive">민감성 / 노약자 / 상처 주변</option>
@@ -89,19 +101,27 @@
             </div>
 
             <div class="field">
-              <label for="moisture">수분/방수 환경</label>
+              <label for="moisture">수분 / 방수 환경</label>
               <select id="moisture" name="moisture">
                 <option value="low" selected>낮음 (일상)</option>
-                <option value="high">높음 (땀·물 접촉 잦음)</option>
+                <option value="high">높음 (땀·물·샤워 접촉 잦음)</option>
               </select>
             </div>
 
             <div class="field">
-              <label for="activity">활동량 / 고정 강도</label>
+              <label for="activity">활동량 / 착용 부위</label>
               <select id="activity" name="activity">
-                <option value="low">낮음 (안정 부위)</option>
-                <option value="mid" selected>보통</option>
-                <option value="high">높음 (관절·운동·무거운 기기)</option>
+                <option value="low">낮음 (몸통 등 안정 부위)</option>
+                <option value="mid" selected>보통 (상완 등)</option>
+                <option value="high">높음 (관절·운동·다한증)</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="deviceWeight">디바이스 무게 / 크기</label>
+              <select id="deviceWeight" name="deviceWeight">
+                <option value="light" selected>가벼움 (박형 패치)</option>
+                <option value="heavy">무거움 (하우징 있는 기기)</option>
               </select>
             </div>
 

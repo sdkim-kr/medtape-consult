@@ -14,20 +14,26 @@
 const ADHESIVES = [
   {
     id: "acrylic",
-    name: "아크릴 (Acrylic)",
-    summary: "장기 착용에 강한 범용 접착제. 시간이 지날수록 접착력이 상승.",
-    wearTime: ["mid", "long"], // 착용 기간 적합도
+    name: "아크릴 PSA (Acrylate)",
+    summary: "연장 착용에 강한 범용 감압 접착제(PSA). 시간이 지날수록 접착력이 상승.",
+    wearTime: ["mid", "long", "extended"], // 착용 기간 적합도
     adhesionStrength: 4, // 1(약) ~ 5(강)
     skinFriendliness: 3, // 1(자극큼) ~ 5(순함)
     moistureResistance: 4,
     repositionable: false,
     bestFor: ["장기 부착 센서", "고정용 웨어러블", "방수가 필요한 환경"],
-    cautions: ["민감성 피부에서 장기 사용 시 각질 손상 위험", "탈착 시 통증 가능"],
+    cautions: ["민감성 피부에서 장기 사용 시 각질 손상(MARSI) 위험", "탈착 시 통증 가능"],
+    // 국내 진출 외국계 제조사의 공개된 대표 제품 카테고리(사실 기반 재구성)
+    vendors: [
+      { brand: "Solventum(3M)", line: "Extended Wear 아크릴레이트 테이프 계열(다일 착용용)" },
+      { brand: "Henkel", line: "DURO-TAK 아크릴 PSA 계열" },
+      { brand: "Avery Dennison", line: "장기 착용용 아크릴 스킨 접착 시스템" },
+    ],
   },
   {
     id: "silicone",
-    name: "실리콘 (Silicone)",
-    summary: "부드럽게 붙고 통증 없이 떼어짐. 반복 부착 및 민감성 피부에 최적.",
+    name: "실리콘 PSA (Silicone)",
+    summary: "부드럽게 붙고 통증 없이 떼어짐. 반복 부착 및 민감성 피부에 최적. MARSI 저감.",
     wearTime: ["short", "mid"],
     adhesionStrength: 2,
     skinFriendliness: 5,
@@ -35,18 +41,26 @@ const ADHESIVES = [
     repositionable: true,
     bestFor: ["신생아/노약자 피부", "반복 탈부착 디바이스", "연약 피부(상처 주변)"],
     cautions: ["강한 물리적 고정력 필요 시 부족", "상대적으로 단가 높음"],
+    vendors: [
+      { brand: "Solventum(3M)", line: "Medical Silicone Tape(스펀레이스 부직포/필름 지지체)" },
+      { brand: "Nitto Denko", line: "저자극 스킨 접착 계열(피부 순함 강조)" },
+    ],
   },
   {
     id: "hydrocolloid",
     name: "하이드로콜로이드 (Hydrocolloid)",
     summary: "수분을 흡수하며 피부를 보호. 습윤 환경 및 상처 부위에 적합.",
-    wearTime: ["mid", "long"],
+    wearTime: ["mid", "long", "extended"],
     adhesionStrength: 3,
     skinFriendliness: 4,
     moistureResistance: 5,
     repositionable: false,
     bestFor: ["CGM 등 습윤 접촉 부위", "삼출물 있는 상처", "장시간 방수 착용"],
     cautions: ["과도한 수분 노출 시 젤화로 탈락 가능", "두께로 인한 이물감"],
+    vendors: [
+      { brand: "Adhesives Research", line: "습윤/친수(hydrophilic) 스킨 접착 계열" },
+      { brand: "Avery Dennison", line: "장기 방수 착용용 하이드로콜로이드 시스템" },
+    ],
   },
   {
     id: "rubber",
@@ -58,7 +72,10 @@ const ADHESIVES = [
     moistureResistance: 2,
     repositionable: false,
     bestFor: ["단기 강력 고정", "저비용 대량 적용"],
-    cautions: ["알레르기 반응 상대적으로 높음", "장기 착용 부적합"],
+    cautions: ["알레르기 반응(감작) 상대적으로 높음", "장기 착용 부적합"],
+    vendors: [
+      { brand: "Henkel", line: "TECHNOMELT 핫멜트 계열(고정용)" },
+    ],
   },
   {
     id: "polyurethane_gel",
@@ -71,6 +88,9 @@ const ADHESIVES = [
     repositionable: true,
     bestFor: ["압박 완화가 필요한 패치", "얼굴 등 곡면/민감 부위"],
     cautions: ["고정력이 약해 활동량 많은 부위 부적합"],
+    vendors: [
+      { brand: "Adhesives Research", line: "겔/쿠셔닝 스킨 접착 계열" },
+    ],
   },
 ];
 

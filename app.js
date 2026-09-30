@@ -137,7 +137,8 @@
           <li>내습성 ${scaleBar(a.moistureResistance)}</li>
         </ul>
         <p class="kb-tag"><strong>적합:</strong> ${a.bestFor.join(", ")}</p>
-        <p class="kb-caution"><strong>주의:</strong> ${a.cautions.join(" · ")}</p>`;
+        <p class="kb-caution"><strong>주의:</strong> ${a.cautions.join(" · ")}</p>
+        ${(a.vendors && a.vendors.length) ? `<p class="kb-vendor"><strong>제조사 계열:</strong> ${a.vendors.map((v) => v.brand).join(" · ")}</p>` : ""}`;
       wrap.appendChild(card);
     });
   }
@@ -195,21 +196,26 @@
     let score = 0;
     const reasons = [];
 
-    // 착용 기간 적합도
+    // 착용 기간 적합도 (extended = 연장 착용)
     if (a.wearTime.includes(input.wearTime)) {
       score += 3;
-      reasons.push("착용 기간에 적합");
+      reasons.push("목표 착용 기간에 적합");
     } else {
       score -= 2;
     }
+    // 연장 착용은 장기 특성을 더 강하게 요구
+    if (input.wearTime === "extended") {
+      score += (a.moistureResistance - 3);
+      if (a.wearTime && a.wearTime.includes("extended")) reasons.push("연장 착용(다일) 대응");
+    }
 
-    // 피부 민감도
+    // 피부 특성 (MARSI 저감 관점)
     if (input.skinType === "neonatal") {
       score += (a.skinFriendliness - 3) * 2; // 순할수록 크게 가점
-      if (a.skinFriendliness >= 5) reasons.push("신생아 피부에 안전");
+      if (a.skinFriendliness >= 5) reasons.push("신생아 피부에 안전 (MARSI 저감)");
     } else if (input.skinType === "sensitive") {
       score += (a.skinFriendliness - 3);
-      if (a.skinFriendliness >= 4) reasons.push("민감성 피부에 순함");
+      if (a.skinFriendliness >= 4) reasons.push("민감성 피부에 순함 (저자극)");
     }
 
     // 수분/방수 환경
@@ -223,8 +229,24 @@
       score += (a.adhesionStrength - 3);
       if (a.adhesionStrength >= 4) reasons.push("강한 고정력 제공");
     } else if (input.activity === "low") {
-      // 저활동엔 순한 접착제 선호
-      score += (a.skinFriendliness - 3) * 0.5;
+      score += (a.skinFriendliness - 3) * 0.5; // 저활동엔 순한 접착제 선호
+    }
+
+    // 디바이스 무게 (무거운 하우징은 강접착 요구)
+    if (input.deviceWeight === "heavy") {
+      score += (a.adhesionStrength - 3);
+      if (a.adhesionStrength >= 4) reasons.push("무거운 디바이스 지지");
+    }
+
+    // 적용 분야별 가중
+    if (input.application === "cgm" || input.application === "diagnostic") {
+      score += (a.moistureResistance - 3) * 0.8; // 습윤·검체 접촉
+      if (a.id === "hydrocolloid" || a.id === "acrylic") reasons.push("연속모니터링·진단 용도 적합");
+    } else if (input.application === "wound") {
+      score += (a.skinFriendliness - 3);
+      if (a.id === "silicone" || a.id === "hydrocolloid") reasons.push("상처 주변 피부 보호");
+    } else if (input.application === "ecg") {
+      if (a.id === "hydrocolloid" || a.id === "acrylic") { score += 1.5; reasons.push("전극 접촉 안정성"); }
     }
 
     // 재부착 필요
@@ -256,9 +278,18 @@
       if (b.conformability >= 4) reasons.push("곡면·관절에 밀착");
     }
 
-    if (input.wearTime === "long") {
+    if (input.wearTime === "long" || input.wearTime === "extended") {
       score += (b.breathability - 3);
-      if (b.breathability >= 4) reasons.push("장기 착용 통기성");
+      if (b.breathability >= 4) reasons.push("장기·연장 착용 통기성");
+    }
+
+    if (input.deviceWeight === "heavy") {
+      // 무게 지지엔 폼/쿠셔닝·치수안정 원단 선호
+      if (b.id === "pe_foam" || b.id === "pet_film") { score += 1.5; reasons.push("디바이스 무게 지지"); }
+    }
+
+    if (input.application === "ecg" || input.application === "diagnostic") {
+      if (b.id === "pet_film") { score += 1.5; reasons.push("전극·회로 캐리어 안정성"); }
     }
 
     return { item: b, score, reasons };
@@ -275,18 +306,26 @@
     const adhesives = topN(KB.ADHESIVES.map((a) => scoreAdhesive(a, input)), 2);
     const backings = topN(KB.BACKINGS.map((b) => scoreBacking(b, input)), 2);
 
-    const wearLabel = { short: "단기(~1일)", mid: "중기(2~7일)", long: "장기(7일+)" }[input.wearTime];
+    const wearLabel = { short: "단기(~1일)", mid: "중기(2~6일)", long: "장기(7일)", extended: "연장(7~14일+)" }[input.wearTime];
     const skinLabel = { normal: "일반 성인", sensitive: "민감성/노약자", neonatal: "신생아/영유아" }[input.skinType];
+    const appLabel = { general: "일반 고정/패치", cgm: "CGM·바이오센서", ecg: "ECG·전극", wound: "상처 드레싱", diagnostic: "진단 디바이스" }[input.application];
 
     const adhesiveHtml = adhesives
       .map((r, i) => {
         const reason = r.reasons.length ? r.reasons.join(", ") : "종합 조건 균형이 우수";
+        const vendors = (r.item.vendors || [])
+          .map((v) => `<span class="vendor-chip">${v.brand}<em>${v.line}</em></span>`)
+          .join("");
+        const vendorBlock = vendors
+          ? `<div class="rec-vendors"><span class="rec-vendors-label">참고 제조사 계열</span>${vendors}</div>`
+          : "";
         return `
         <div class="rec-item ${i === 0 ? "rec-primary" : ""}">
           <div class="rec-rank">${i === 0 ? "1순위" : "대안"}</div>
           <div class="rec-body">
             <strong>${r.item.name}</strong>
             <p>${reason}</p>
+            ${vendorBlock}
           </div>
         </div>`;
       })
@@ -309,15 +348,16 @@
     out.innerHTML = `
       <div class="result-card">
         <h3>추천 결과</h3>
-        <p class="result-cond">조건: ${wearLabel} · ${skinLabel} · 방수 ${input.moisture === "high" ? "높음" : "낮음"} · 활동 ${input.activity}${input.reposition ? " · 재부착" : ""}</p>
+        <p class="result-cond">${appLabel} · ${wearLabel} · ${skinLabel} · 방수 ${input.moisture === "high" ? "높음" : "낮음"} · 활동 ${input.activity}${input.deviceWeight === "heavy" ? " · 중량기기" : ""}${input.reposition ? " · 재부착" : ""}</p>
 
-        <h4 class="rec-group">추천 접착제</h4>
+        <h4 class="rec-group">추천 접착제 (Adhesive)</h4>
         ${adhesiveHtml}
 
-        <h4 class="rec-group">추천 원단</h4>
+        <h4 class="rec-group">추천 원단 (Backing)</h4>
         ${backingHtml}
 
-        <p class="result-disclaimer">⚠️ 위 추천은 초기 방향 설정용입니다. 최종 채택 전 반드시 생체적합성(ISO 10993) 시험과 실착용 테스트를 진행하세요.</p>
+        <p class="result-vendor-note">※ 표기된 제조사 계열은 국내 진출 외국계(Solventum(3M)·Henkel·Nitto Denko·Adhesives Research·Avery Dennison)의 공개된 제품 카테고리를 참고한 예시이며, 특정 제품 지정·보증이 아닙니다.</p>
+        <p class="result-disclaimer">⚠️ 위 추천은 초기 방향 설정용입니다. 최종 채택 전 반드시 생체적합성(ISO 10993) 시험, MARSI 리스크 평가, 실착용 테스트를 진행하세요.</p>
         <a href="#contact" class="btn btn-primary btn-sm">이 조건으로 상담 요청</a>
       </div>`;
   }
@@ -328,10 +368,12 @@
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const input = {
+        application: form.application.value,
         wearTime: form.wearTime.value,
         skinType: form.skinType.value,
         moisture: form.moisture.value,
         activity: form.activity.value,
+        deviceWeight: form.deviceWeight.value,
         reposition: form.reposition.checked,
       };
       renderResult(input);
