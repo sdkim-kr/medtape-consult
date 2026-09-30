@@ -545,7 +545,8 @@ body.modal-open { overflow: hidden; }
   gap: 10px;
   margin-top: 24px;
 }
-.solventum-badge {
+.solventum-badge,
+.ar-badge {
   font-size: 11px;
   font-weight: 800;
   letter-spacing: .03em;
@@ -554,6 +555,7 @@ body.modal-open { overflow: hidden; }
   padding: 3px 9px;
   border-radius: 999px;
 }
+.ar-badge { background: #2c6b8a; }
 .prod-list { display: grid; gap: 12px; }
 .prod-item {
   border: 1px solid var(--line);

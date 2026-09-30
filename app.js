@@ -314,6 +314,21 @@
     return { item: p, score };
   }
 
+  // Adhesives Research 제품 매칭 (match 필드가 배열/문자열 혼용 지원)
+  function inMatch(field, value) {
+    if (field == null) return false;
+    return Array.isArray(field) ? field.includes(value) : field === value;
+  }
+  function scoreAR(p, input, topAdhesiveId) {
+    let score = 0;
+    const m = p.match || {};
+    if (inMatch(m.application, input.application)) score += 4;
+    if (inMatch(m.adhesive, topAdhesiveId)) score += 2;
+    if (inMatch(m.skinType, input.skinType)) score += 2;
+    if (inMatch(m.deviceWeight, input.deviceWeight)) score += 2;
+    return { item: p, score };
+  }
+
   function renderResult(input) {
     const out = $("#advisor-result");
     if (!out) return;
@@ -324,6 +339,11 @@
 
     const solventum = topN(
       (KB.SOLVENTUM_PRODUCTS || []).map((p) => scoreSolventum(p, input, topAdhesiveId)),
+      2
+    ).filter((r) => r.score > 0);
+
+    const arProducts = topN(
+      (KB.AR_PRODUCTS || []).map((p) => scoreAR(p, input, topAdhesiveId)),
       2
     ).filter((r) => r.score > 0);
 
@@ -366,12 +386,13 @@
       })
       .join("");
 
-    const solventumHtml = solventum.length
-      ? solventum
-          .map((r, i) => {
-            const p = r.item;
-            const hi = (p.highlights || []).map((h) => `<li>${h}</li>`).join("");
-            return `
+    const productCards = (list) =>
+      list.length
+        ? list
+            .map((r, i) => {
+              const p = r.item;
+              const hi = (p.highlights || []).map((h) => `<li>${h}</li>`).join("");
+              return `
         <div class="prod-item ${i === 0 ? "prod-primary" : ""}">
           <div class="prod-head">
             <span class="prod-code">${p.code}</span>
@@ -383,9 +404,12 @@
           <p class="prod-constr">${p.construction}</p>
           <ul class="prod-hi">${hi}</ul>
         </div>`;
-          })
-          .join("")
-      : `<p class="prod-empty">이 조건에 딱 맞는 대표 제품이 좁혀지지 않았습니다. 상담을 통해 맞춤 검토를 제안드립니다.</p>`;
+            })
+            .join("")
+        : `<p class="prod-empty">이 조건에 딱 맞는 대표 제품이 좁혀지지 않았습니다. 상담을 통해 맞춤 검토를 제안드립니다.</p>`;
+
+    const solventumHtml = productCards(solventum);
+    const arHtml = productCards(arProducts);
 
     out.innerHTML = `
       <div class="result-card">
@@ -401,7 +425,10 @@
         <h4 class="rec-group rec-group-solventum">솔벤텀(3M) 대표 제품 매칭 <span class="solventum-badge">Solventum</span></h4>
         <div class="prod-list">${solventumHtml}</div>
 
-        <p class="result-vendor-note">※ 솔벤텀(3M)의 공개 제품 자료를 참고한 예시 매칭입니다. 스펙 수치는 대표값이며, 특정 제품 지정·보증이 아닙니다. 정확한 사양은 최신 기술자료(TIS/TDS)를 확인하세요.</p>
+        <h4 class="rec-group rec-group-solventum">Adhesives Research 대표 제품 매칭 <span class="ar-badge">AR</span></h4>
+        <div class="prod-list">${arHtml}</div>
+
+        <p class="result-vendor-note">※ 솔벤텀(3M) 및 Adhesives Research의 공개 제품 자료를 참고한 예시 매칭입니다. 스펙 수치는 대표값이며, 특정 제품 지정·보증이 아닙니다. 정확한 사양은 각 사의 최신 기술자료(TIS/TDS)를 확인하세요.</p>
         <p class="result-disclaimer">⚠️ 위 추천은 초기 방향 설정용입니다. 최종 채택 전 반드시 생체적합성(ISO 10993) 시험, MARSI 리스크 평가, 실착용 테스트를 진행하세요.</p>
         <a href="#contact" class="btn btn-primary btn-sm">이 조건으로 상담 요청</a>
       </div>`;

@@ -41,6 +41,7 @@ const ADHESIVES = [
     cautions: ["강한 물리적 고정력 필요 시 부족", "상대적으로 단가 높음"],
     vendors: [
       { brand: "Solventum(3M)", line: "Medical Silicone Tape 2480(hi-tack) · 2487 (최대 7일)" },
+      { brand: "Adhesives Research", line: "ARcare Skin Friendly 계열(저자극 피부 접촉)" },
     ],
   },
   {
@@ -56,6 +57,7 @@ const ADHESIVES = [
     cautions: ["과도한 수분 노출 시 젤화로 탈락 가능", "두께로 인한 이물감"],
     vendors: [
       { brand: "Solventum(3M)", line: "습윤 접촉 응용은 4578 등 연장착용 아크릴 + 흡수 드레싱 조합 검토" },
+      { brand: "Adhesives Research", line: "진단·미세유체는 ARflow/ARcare 92205 친수성 계열" },
     ],
   },
   {
@@ -275,5 +277,57 @@ const SOLVENTUM_PRODUCTS = [
   },
 ];
 
+// Adhesives Research(AR) healthcare 대표 제품/기술 카탈로그 -----------------
+// AR healthcare 공개 자료 기준 정리. AR은 스킨프렌들리 테이프와 함께
+// 진단(체외진단 IVD)·미세유체 조립용 기능성 테이프에 강점이 있습니다.
+// 스펙/제품은 대표 예시이며 사양 목적으로 사용할 수 없습니다.
+const AR_PRODUCTS = [
+  {
+    code: "Skin Friendly",
+    name: "ARcare® Skin Friendly Tapes",
+    construction: "피부 순응(skin-friendly) 감압 접착 테이프 계열",
+    wearTime: "단·중기 피부 접촉",
+    match: { adhesive: ["silicone", "acrylic"], skinType: ["sensitive", "neonatal"], application: ["general", "cgm", "ecg", "wound"] },
+    highlights: ["의료기기·웨어러블 피부 접촉용", "저자극·순응 설계", "다양한 백킹/접착 조합"],
+    bestFor: ["웨어러블 피부 접촉층", "패치형 디바이스"],
+  },
+  {
+    code: "ARcare 92205",
+    name: "ARcare® 92205 친수성 다공 PSA",
+    construction: "친수성(hydrophilic) 다공성 접착 전사 필름 (Z축 채널)",
+    wearTime: "진단 카트리지용",
+    match: { application: ["diagnostic", "cgm"] },
+    highlights: ["수성 유체를 층간 균일 유도", "검사 정확도 위한 안정적 기공 구조", "체외진단(IVD) 조립"],
+    bestFor: ["미세유체 진단", "래터럴 플로우 검사"],
+  },
+  {
+    code: "ARflow",
+    name: "ARflow® 친수성 테이프",
+    construction: "친수성/히트씰 기능성 테이프 (수성 유체 표면장력 저감)",
+    wearTime: "진단 디바이스용",
+    match: { application: ["diagnostic"] },
+    highlights: ["물·소변·혈액 등 유체 흐름 제어", "검체 주입부→반응부 원활 이송", "IVD 유체 흐름층"],
+    bestFor: ["체외진단(IVD)", "검체 유동 채널"],
+  },
+  {
+    code: "ARcare Cover",
+    name: "ARcare® Cover Tapes",
+    construction: "검사존 보호·리에이전트 웰 실링용 커버 테이프",
+    wearTime: "진단 디바이스용",
+    match: { application: ["diagnostic"] },
+    highlights: ["검사존 오염·증발 차단", "민감 부품 격리", "검체 웰 실링"],
+    bestFor: ["진단 카트리지 보호층", "리에이전트 실링"],
+  },
+  {
+    code: "Device Bonding",
+    name: "ARclad®/ARseal® Device Bonding Tapes",
+    construction: "디바이스 층간 접합용 양면(double-coated) 테이프",
+    wearTime: "구조 접합용",
+    match: { deviceWeight: "heavy", application: ["diagnostic", "ecg", "general"] },
+    highlights: ["디바이스 층간 강한 접합", "다양한 소재 접착", "바이오칩 본딩 응용"],
+    bestFor: ["하우징·부품 접합", "중량 디바이스 구조 결합"],
+  },
+];
+
 // 다른 파일에서 사용할 수 있도록 전역으로 노출
-window.MEDTAPE_KB = { ADHESIVES, BACKINGS, COMPLIANCE_NOTES, SOLVENTUM_PRODUCTS };
+window.MEDTAPE_KB = { ADHESIVES, BACKINGS, COMPLIANCE_NOTES, SOLVENTUM_PRODUCTS, AR_PRODUCTS };
