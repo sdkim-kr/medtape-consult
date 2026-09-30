@@ -35,21 +35,65 @@
       icon: "🔎",
       title: "테이프 선정 컨설팅",
       desc: "제품 착용 시나리오에 맞는 접착제·원단 조합을 진단하고 후보군을 제시합니다.",
+      details: {
+        intro:
+          "제품의 사용 환경을 정밀하게 분석해 최적의 접착제·원단 조합을 좁혀드립니다.",
+        points: [
+          "착용 부위, 기간, 활동량, 대상 사용자(민감성 피부 여부)를 기준으로 요구사항을 정리합니다.",
+          "접착제 계열(아크릴/실리콘/하이드로콜로이드 등)별 장단점을 비교해 후보를 압축합니다.",
+          "원단(PU필름/부직포/PET 등)의 통기성·밀착성·방수성 균형을 맞춥니다.",
+          "후보군에 대한 벤치마크 테스트 설계까지 지원합니다.",
+        ],
+        tip: "사이트의 '테이프 추천 진단'을 먼저 돌려보시면 상담이 훨씬 구체적으로 진행됩니다.",
+      },
     },
     {
       icon: "🧪",
       title: "적용성 & 안전성 검토",
       desc: "피부 자극, 박리력, 통기성 관점에서 리스크를 사전 점검합니다.",
+      details: {
+        intro:
+          "선정한 테이프가 실제 사용 상황에서 안전하고 안정적으로 붙어있는지 리스크를 사전 점검합니다.",
+        points: [
+          "피부 자극·홍반 가능성, 장기 착용 시 각질 손상 위험을 평가합니다.",
+          "박리력(초기/시간경과)이 사용 시나리오에 적정한지 검토합니다.",
+          "통기성 부족으로 인한 짓무름(침연) 리스크를 점검합니다.",
+          "탈착 시 통증·잔사(접착제 남음) 여부를 확인합니다.",
+        ],
+        tip: "안전성은 '강한 접착'이 아니라 '적정 접착 + 낮은 자극'의 균형에서 나옵니다.",
+      },
     },
     {
       icon: "📐",
       title: "다이컷 / 구조 설계",
       desc: "패치 형상, 라이너, 릴리스 구조 등 양산을 고려한 설계를 지원합니다.",
+      details: {
+        intro:
+          "양산과 사용 편의를 모두 고려해 패치의 물리적 구조를 설계합니다.",
+        points: [
+          "부착 부위 곡면에 맞는 형상과 모서리 라운딩(들뜸 방지)을 설계합니다.",
+          "릴리스 라이너 분할·탭 구조로 사용자가 쉽게 붙일 수 있게 합니다.",
+          "디바이스 창(window), 센서 홀 등 기능부 정렬을 설계에 반영합니다.",
+          "다이컷 공정성과 수율을 고려한 재단 레이아웃을 제안합니다.",
+        ],
+        tip: "붙이기 어려운 구조는 접착 성능이 좋아도 현장에서 들뜸·오적용을 유발합니다.",
+      },
     },
     {
       icon: "📋",
       title: "규제 · 인허가 대응",
       desc: "생체적합성 시험 항목과 등급 분류, 문서화 방향을 안내합니다.",
+      details: {
+        intro:
+          "제품 특성에 맞는 인허가 경로와 필요한 시험·문서를 정리해 드립니다.",
+        points: [
+          "사용 목적(intended use) 기준으로 의료기기 해당 여부와 등급을 판별합니다.",
+          "필요한 생체적합성(ISO 10993) 시험 항목을 도출합니다.",
+          "기술문서·성능시험 자료 구성 방향을 안내합니다.",
+          "국내(K-MDR)와 해외(MDR/FDA) 경로 차이를 비교합니다.",
+        ],
+        tip: "규제 항목은 오른쪽 '규제·품질 체크리스트' 섹션에서 개별 항목도 확인할 수 있습니다.",
+      },
     },
   ];
 
@@ -57,12 +101,24 @@
   function renderServices() {
     const wrap = $("#service-cards");
     if (!wrap) return;
-    SERVICES.forEach((s) => {
-      const card = el("article", "card");
+    SERVICES.forEach((s, idx) => {
+      const card = el("article", "card card-clickable");
+      card.setAttribute("role", "button");
+      card.setAttribute("tabindex", "0");
+      card.setAttribute("aria-label", s.title + " 상세 보기");
       card.innerHTML = `
         <div class="card-icon" aria-hidden="true">${s.icon}</div>
         <h3>${s.title}</h3>
-        <p>${s.desc}</p>`;
+        <p>${s.desc}</p>
+        <span class="card-more">자세히 보기 →</span>`;
+      const open = () => openServiceModal(idx);
+      card.addEventListener("click", open);
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          open();
+        }
+      });
       wrap.appendChild(card);
     });
   }
@@ -107,14 +163,26 @@
   function renderCompliance() {
     const wrap = $("#compliance-list");
     if (!wrap) return;
-    KB.COMPLIANCE_NOTES.forEach((c) => {
-      const item = el("div", "compliance-item");
+    KB.COMPLIANCE_NOTES.forEach((c, idx) => {
+      const item = el("div", "compliance-item compliance-clickable");
+      item.setAttribute("role", "button");
+      item.setAttribute("tabindex", "0");
+      item.setAttribute("aria-label", c.title + " 상세 보기");
       item.innerHTML = `
         <span class="badge">${c.code}</span>
         <div>
           <h4>${c.title}</h4>
           <p>${c.desc}</p>
+          <span class="card-more">자세히 보기 →</span>
         </div>`;
+      const open = () => openComplianceModal(idx);
+      item.addEventListener("click", open);
+      item.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          open();
+        }
+      });
       wrap.appendChild(item);
     });
   }
@@ -283,6 +351,80 @@
       status.classList.add("ok");
       form.reset();
     });
+  }
+
+  // ---------- 모달 ----------
+  let lastFocused = null;
+
+  function ensureModal() {
+    let overlay = $("#modal-overlay");
+    if (overlay) return overlay;
+    overlay = el("div", "modal-overlay");
+    overlay.id = "modal-overlay";
+    overlay.setAttribute("hidden", "");
+    overlay.innerHTML = `
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button class="modal-close" type="button" aria-label="닫기">×</button>
+        <div class="modal-content"></div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    const close = () => closeModal();
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) close();
+    });
+    overlay.querySelector(".modal-close").addEventListener("click", close);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !overlay.hasAttribute("hidden")) close();
+    });
+    return overlay;
+  }
+
+  function buildDetailHtml(icon, label, title, d) {
+    const points = (d.points || []).map((p) => `<li>${p}</li>`).join("");
+    const tip = d.tip
+      ? `<p class="modal-tip"><strong>💡 참고</strong> ${d.tip}</p>`
+      : "";
+    return `
+      <div class="modal-head">
+        ${icon ? `<span class="modal-icon" aria-hidden="true">${icon}</span>` : ""}
+        <div>
+          ${label ? `<span class="modal-eyebrow">${label}</span>` : ""}
+          <h3 id="modal-title">${title}</h3>
+        </div>
+      </div>
+      <p class="modal-intro">${d.intro || ""}</p>
+      ${points ? `<ul class="modal-points">${points}</ul>` : ""}
+      ${tip}`;
+  }
+
+  function openModal(html) {
+    const overlay = ensureModal();
+    overlay.querySelector(".modal-content").innerHTML = html;
+    overlay.removeAttribute("hidden");
+    document.body.classList.add("modal-open");
+    lastFocused = document.activeElement;
+    overlay.querySelector(".modal-close").focus();
+  }
+
+  function closeModal() {
+    const overlay = $("#modal-overlay");
+    if (!overlay) return;
+    overlay.setAttribute("hidden", "");
+    document.body.classList.remove("modal-open");
+    if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+  }
+
+  function openServiceModal(idx) {
+    const s = SERVICES[idx];
+    if (!s || !s.details) return;
+    openModal(buildDetailHtml(s.icon, "컨설팅 서비스", s.title, s.details));
+  }
+
+  function openComplianceModal(idx) {
+    const c = KB.COMPLIANCE_NOTES[idx];
+    if (!c || !c.details) return;
+    openModal(buildDetailHtml("📋", c.code, c.title, c.details));
   }
 
   // ---------- 초기화 ----------
