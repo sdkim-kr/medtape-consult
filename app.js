@@ -299,34 +299,46 @@
     return list.slice().sort((x, y) => y.score - x.score).slice(0, n);
   }
 
-  // 솔벤텀(3M) 제품 매칭: 입력 조건과 추천 접착제에 맞춰 구체 제품 점수화
-  function scoreSolventum(p, input, topAdhesiveId) {
+  // match 필드가 배열/문자열 혼용을 지원
+  function inMatch(field, value) {
+    if (field == null || value == null) return false;
+    return Array.isArray(field) ? field.includes(value) : field === value;
+  }
+
+  // 통합 제품 매칭: 모든 제조사의 제품을 동일 기준으로 점수화
+  function scoreProduct(p, input, topAdhesiveId) {
     let score = 0;
     const m = p.match || {};
-    if (m.wearTime && m.wearTime.includes(input.wearTime)) score += 3;
-    if (m.adhesive && m.adhesive === topAdhesiveId) score += 3;
-    if (m.activity && m.activity === input.activity) score += 2;
-    if (m.deviceWeight && m.deviceWeight === input.deviceWeight) score += 2;
+    if (inMatch(m.wearTime, input.wearTime)) score += 3;
+    if (inMatch(m.adhesive, topAdhesiveId)) score += 3;
+    // 적용 분야 매치: 진단/ECG 등 특수 분야는 특화 제품이 부각되도록 가중 강화
+    if (inMatch(m.application, input.application)) {
+      const specialized = input.application === "diagnostic" || input.application === "ecg";
+      score += specialized ? 5 : 3;
+    }
+    if (inMatch(m.skinType, input.skinType)) score += 2;
+    if (inMatch(m.moisture, input.moisture)) score += 2;
+    if (inMatch(m.activity, input.activity)) score += 2;
+    if (inMatch(m.deviceWeight, input.deviceWeight)) score += 2;
     if (m.reposition && input.reposition) score += 2;
-    if (m.application && m.application.includes(input.application)) score += 2;
     // 재부착이 필요한데 재부착 매치가 없는 제품은 감점
     if (input.reposition && !m.reposition) score -= 1;
     return { item: p, score };
   }
 
-  // Adhesives Research 제품 매칭 (match 필드가 배열/문자열 혼용 지원)
-  function inMatch(field, value) {
-    if (field == null) return false;
-    return Array.isArray(field) ? field.includes(value) : field === value;
-  }
-  function scoreAR(p, input, topAdhesiveId) {
-    let score = 0;
-    const m = p.match || {};
-    if (inMatch(m.application, input.application)) score += 4;
-    if (inMatch(m.adhesive, topAdhesiveId)) score += 2;
-    if (inMatch(m.skinType, input.skinType)) score += 2;
-    if (inMatch(m.deviceWeight, input.deviceWeight)) score += 2;
-    return { item: p, score };
+  // 각 제조사에서 조건에 맞는 상위 제품을 뽑아 제조사 단위로 반환
+  function matchVendors(input, topAdhesiveId) {
+    return (KB.VENDORS || [])
+      .map((v) => {
+        const products = topN(
+          v.products.map((p) => scoreProduct(p, input, topAdhesiveId)),
+          2
+        ).filter((r) => r.score > 0);
+        const best = products.length ? products[0].score : 0;
+        return { vendor: v, products, best };
+      })
+      .filter((v) => v.products.length > 0)
+      .sort((a, b) => b.best - a.best);
   }
 
   function renderResult(input) {
@@ -337,15 +349,7 @@
     const backings = topN(KB.BACKINGS.map((b) => scoreBacking(b, input)), 2);
     const topAdhesiveId = adhesives[0] ? adhesives[0].item.id : null;
 
-    const solventum = topN(
-      (KB.SOLVENTUM_PRODUCTS || []).map((p) => scoreSolventum(p, input, topAdhesiveId)),
-      2
-    ).filter((r) => r.score > 0);
-
-    const arProducts = topN(
-      (KB.AR_PRODUCTS || []).map((p) => scoreAR(p, input, topAdhesiveId)),
-      2
-    ).filter((r) => r.score > 0);
+    const vendorMatches = matchVendors(input, topAdhesiveId);
 
     const wearLabel = { short: "단기(~1일)", mid: "중기(2~6일)", long: "장기(7일)", extended: "연장(7~14일+)" }[input.wearTime];
     const skinLabel = { normal: "일반 성인", sensitive: "민감성/노약자", neonatal: "신생아/영유아" }[input.skinType];
@@ -408,8 +412,18 @@
             .join("")
         : `<p class="prod-empty">이 조건에 딱 맞는 대표 제품이 좁혀지지 않았습니다. 상담을 통해 맞춤 검토를 제안드립니다.</p>`;
 
-    const solventumHtml = productCards(solventum);
-    const arHtml = productCards(arProducts);
+    const vendorHtml = vendorMatches.length
+      ? vendorMatches
+          .map(
+            (vm) => `
+        <div class="vendor-block">
+          <h4 class="rec-group rec-group-vendor">${vm.vendor.name} <span class="vendor-badge">${vm.vendor.badge}</span></h4>
+          <p class="vendor-note">${vm.vendor.note}</p>
+          <div class="prod-list">${productCards(vm.products)}</div>
+        </div>`
+          )
+          .join("")
+      : `<p class="prod-empty">입력 조건에 맞는 제조사 제품이 좁혀지지 않았습니다. 상담을 통해 맞춤 검토를 제안드립니다.</p>`;
 
     out.innerHTML = `
       <div class="result-card">
@@ -422,13 +436,10 @@
         <h4 class="rec-group">추천 원단 (Backing)</h4>
         ${backingHtml}
 
-        <h4 class="rec-group rec-group-solventum">솔벤텀(3M) 대표 제품 매칭 <span class="solventum-badge">Solventum</span></h4>
-        <div class="prod-list">${solventumHtml}</div>
+        <h4 class="rec-group rec-group-vendors-title">제조사별 대표 제품 매칭 <span class="vendor-count">${vendorMatches.length}개사</span></h4>
+        <div class="vendor-list">${vendorHtml}</div>
 
-        <h4 class="rec-group rec-group-solventum">Adhesives Research 대표 제품 매칭 <span class="ar-badge">AR</span></h4>
-        <div class="prod-list">${arHtml}</div>
-
-        <p class="result-vendor-note">※ 솔벤텀(3M) 및 Adhesives Research의 공개 제품 자료를 참고한 예시 매칭입니다. 스펙 수치는 대표값이며, 특정 제품 지정·보증이 아닙니다. 정확한 사양은 각 사의 최신 기술자료(TIS/TDS)를 확인하세요.</p>
+        <p class="result-vendor-note">※ 국내 진출 외국계 제조사(Solventum(3M)·Adhesives Research·Nitto Denko·Henkel·Lohmann·tesa·Avery Dennison Medical·Berry Global·Scapa Healthcare)의 공개 제품 자료를 참고한 예시 매칭입니다. 스펙·제품명은 대표값이며 특정 제품 지정·보증이 아닙니다. 정확한 사양은 각 사의 최신 기술자료(TIS/TDS)를 확인하세요.</p>
         <p class="result-disclaimer">⚠️ 위 추천은 초기 방향 설정용입니다. 최종 채택 전 반드시 생체적합성(ISO 10993) 시험, MARSI 리스크 평가, 실착용 테스트를 진행하세요.</p>
         <a href="#contact" class="btn btn-primary btn-sm">이 조건으로 상담 요청</a>
       </div>`;
